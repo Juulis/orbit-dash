@@ -1,6 +1,9 @@
 # Orbit Dash
 
-Ett litet JavaScript-arkadspel. Undvik asteroiderna med WASD eller piltangenterna.
+Ett litet JavaScript-arkadspel. Undvik asteroiderna.
+
+- Desktop: WASD eller piltangenter
+- Telefon: håll fingret på banan så följer skeppet efter
 
 ## Spela
 
@@ -13,4 +16,4 @@ Ett litet JavaScript-arkadspel. Undvik asteroiderna med WASD eller piltangentern
 npm test
 ```
 
-`develop` → PR → `main`. Push till `main` publicerar GitHub Pages.
+`develop`/`feature/*` → PR → `main`. Push till `main` publicerar GitHub Pages.
