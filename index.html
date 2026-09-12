@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orbit Dash</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header>
+        <div>
+          <h1>Orbit Dash</h1>
+          <p>WASD / pilar för att undvika asteroiderna.</p>
+        </div>
+        <div class="meta">
+          Poäng: <strong id="score">0</strong> · Bästa: <strong id="high">0</strong>
+        </div>
+      </header>
+      <section class="stage">
+        <canvas id="game" width="720" height="480"></canvas>
+        <div id="overlay" class="overlay">
+          <div>
+            <h2 id="overlay-title">Redo?</h2>
+            <p id="overlay-text">Tryck space, enter eller starta.</p>
+            <button id="start" type="button">Starta</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
