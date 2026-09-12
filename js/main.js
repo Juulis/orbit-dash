@@ -1,8 +1,11 @@
 import {
   anyCollision,
+  canvasPointFromClient,
   createPlayer,
+  isTouchDevice,
   loadHighScore,
   movePlayer,
+  movePlayerToward,
   nextSpawnDelay,
   saveHighScore,
   scoreForEscaped,
@@ -14,10 +17,12 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const scoreEl = document.getElementById("score");
 const highEl = document.getElementById("high");
+const hintEl = document.getElementById("controls-hint");
 const overlay = document.getElementById("overlay");
 const overlayTitle = document.getElementById("overlay-title");
 const overlayText = document.getElementById("overlay-text");
 
+const touch = isTouchDevice();
 const keys = { left: false, right: false, up: false, down: false };
 const KEY_MAP = {
   ArrowLeft: "left",
@@ -34,6 +39,12 @@ const KEY_MAP = {
   S: "down",
 };
 
+if (touch) {
+  document.body.classList.add("is-touch");
+  hintEl.textContent = "Håll fingret på skärmen så följer skeppet efter.";
+  overlayText.textContent = "Tryck starta eller någonstans på banan.";
+}
+
 let player = createPlayer(canvas.width, canvas.height);
 let asteroids = [];
 let score = 0;
@@ -42,6 +53,7 @@ let elapsed = 0;
 let spawnIn = 0.4;
 let running = false;
 let last = 0;
+let touchTarget = null;
 
 highEl.textContent = String(high);
 
@@ -51,6 +63,7 @@ function reset() {
   score = 0;
   elapsed = 0;
   spawnIn = 0.4;
+  touchTarget = null;
   scoreEl.textContent = "0";
 }
 
@@ -64,6 +77,7 @@ function start() {
 
 function gameOver() {
   running = false;
+  touchTarget = null;
   high = saveHighScore(score);
   highEl.textContent = String(high);
   overlayTitle.textContent = "Game over";
@@ -78,7 +92,11 @@ function loop(now) {
   elapsed += dt;
   spawnIn -= dt;
 
-  movePlayer(player, keys, dt, { w: canvas.width, h: canvas.height });
+  if (touchTarget) {
+    movePlayerToward(player, touchTarget, dt, { w: canvas.width, h: canvas.height });
+  } else {
+    movePlayer(player, keys, dt, { w: canvas.width, h: canvas.height });
+  }
 
   if (spawnIn <= 0) {
     asteroids.push(spawnAsteroid(canvas.width));
@@ -129,6 +147,15 @@ function draw() {
   }
 }
 
+function setTouchFromEvent(event) {
+  const point = event.touches ? event.touches[0] : event;
+  if (!point) {
+    touchTarget = null;
+    return;
+  }
+  touchTarget = canvasPointFromClient(canvas, point.clientX, point.clientY);
+}
+
 window.addEventListener("keydown", (event) => {
   const dir = KEY_MAP[event.key];
   if (dir) {
@@ -142,6 +169,39 @@ window.addEventListener("keyup", (event) => {
   const dir = KEY_MAP[event.key];
   if (dir) keys[dir] = false;
 });
+
+canvas.addEventListener(
+  "pointerdown",
+  (event) => {
+    if (event.pointerType === "touch" || event.pointerType === "pen" || touch) {
+      event.preventDefault();
+      if (!running) start();
+      setTouchFromEvent(event);
+      canvas.setPointerCapture?.(event.pointerId);
+    }
+  },
+  { passive: false }
+);
+
+canvas.addEventListener(
+  "pointermove",
+  (event) => {
+    if (touchTarget && (event.pointerType === "touch" || event.pointerType === "pen" || touch)) {
+      event.preventDefault();
+      setTouchFromEvent(event);
+    }
+  },
+  { passive: false }
+);
+
+function clearTouch(event) {
+  if (event.pointerType === "touch" || event.pointerType === "pen" || touch) {
+    touchTarget = null;
+  }
+}
+
+canvas.addEventListener("pointerup", clearTouch);
+canvas.addEventListener("pointercancel", clearTouch);
 
 document.getElementById("start").addEventListener("click", start);
 draw();

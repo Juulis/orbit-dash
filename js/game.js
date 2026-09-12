@@ -11,6 +11,23 @@ export function createPlayer(width, height) {
   return { x: width / 2 - 14, y: height - 64, w: 28, h: 28, speed: 280 };
 }
 
+export function isTouchDevice(nav = globalThis.navigator, win = globalThis) {
+  if (!nav) return false;
+  if (Number(nav.maxTouchPoints) > 0) return true;
+  if (win.matchMedia && win.matchMedia("(pointer: coarse)").matches) return true;
+  return "ontouchstart" in win;
+}
+
+export function canvasPointFromClient(canvas, clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const width = rect.width || canvas.width;
+  const height = rect.height || canvas.height;
+  return {
+    x: ((clientX - rect.left) / width) * canvas.width,
+    y: ((clientY - rect.top) / height) * canvas.height,
+  };
+}
+
 export function movePlayer(player, keys, dt, bounds) {
   let dx = 0;
   let dy = 0;
@@ -24,6 +41,22 @@ export function movePlayer(player, keys, dt, bounds) {
   }
   player.x = Math.max(0, Math.min(bounds.w - player.w, player.x + dx * player.speed * dt));
   player.y = Math.max(0, Math.min(bounds.h - player.h, player.y + dy * player.speed * dt));
+  return player;
+}
+
+export function movePlayerToward(player, target, dt, bounds) {
+  if (!target) return player;
+  const cx = player.x + player.w / 2;
+  const cy = player.y + player.h / 2;
+  const dx = target.x - cx;
+  const dy = target.y - cy;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 4) return player;
+  const step = Math.min(dist, player.speed * dt);
+  player.x += (dx / dist) * step;
+  player.y += (dy / dist) * step;
+  player.x = Math.max(0, Math.min(bounds.w - player.w, player.x));
+  player.y = Math.max(0, Math.min(bounds.h - player.h, player.y));
   return player;
 }
 

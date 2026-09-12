@@ -2,9 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   anyCollision,
+  canvasPointFromClient,
   createPlayer,
+  isTouchDevice,
   loadHighScore,
   movePlayer,
+  movePlayerToward,
   nextSpawnDelay,
   saveHighScore,
   scoreForEscaped,
@@ -25,6 +28,33 @@ test("movePlayer håller sig inom banan", () => {
   movePlayer(player, { left: true, up: true, right: false, down: false }, 1, { w: 200, h: 200 });
   assert.equal(player.x, 0);
   assert.equal(player.y, 0);
+});
+
+test("isTouchDevice känner igen telefon", () => {
+  assert.equal(isTouchDevice({ maxTouchPoints: 5 }, {}), true);
+  assert.equal(isTouchDevice({ maxTouchPoints: 0 }, { matchMedia: () => ({ matches: false }) }), false);
+  assert.equal(
+    isTouchDevice({ maxTouchPoints: 0 }, { matchMedia: () => ({ matches: true }) }),
+    true
+  );
+});
+
+test("canvasPointFromClient skalar till canvaskoordinater", () => {
+  const canvas = {
+    width: 720,
+    height: 480,
+    getBoundingClientRect: () => ({ left: 10, top: 20, width: 360, height: 240 }),
+  };
+  const point = canvasPointFromClient(canvas, 190, 140);
+  assert.equal(point.x, 360);
+  assert.equal(point.y, 240);
+});
+
+test("movePlayerToward styr mot fingret", () => {
+  const player = { x: 0, y: 0, w: 20, h: 20, speed: 100 };
+  movePlayerToward(player, { x: 200, y: 10 }, 1, { w: 400, h: 400 });
+  assert.ok(player.x > 0);
+  assert.ok(player.x <= 400 - 20);
 });
 
 test("spawnAsteroid använder seedad slump", () => {
